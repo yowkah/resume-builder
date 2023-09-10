@@ -9,21 +9,62 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-import { useFieldArray, useForm, useFormContext } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Collapsible } from "@/components/ui/collapsible";
 import {
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@radix-ui/react-collapsible";
-import { ChevronsUpDownIcon } from "lucide-react";
+} from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+import React from "react";
+import z from "zod";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ChevronsUpDownIcon,
+  MoreVerticalIcon,
+  PlusIcon,
+  Trash2Icon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const SECTIONS = {
   personalDetails: PersonalDetails,
+  skills: Skills,
+};
+
+type SectionProps = {
+  index: number;
 };
 
 const defaultValues: Schema = {
@@ -46,8 +87,17 @@ const defaultValues: Schema = {
       summary: "",
       wantedJobTitle: "",
     },
+    {
+      title: "Skills",
+      type: "skills",
+      skills: [],
+    },
   ],
 };
+
+/**
+ * Schemas for all possible sections of the resume
+ */
 
 const personalDetailsSchema = z.object({
   type: z.literal("personalDetails"),
@@ -68,19 +118,43 @@ const personalDetailsSchema = z.object({
   wantedJobTitle: z.string(),
 });
 
-type PersonalDetailsSchema = z.infer<typeof personalDetailsSchema>;
+const skillsSchema = z.object({
+  type: z.literal("skills"),
+  title: z.string().default("Skills"),
+  skills: z.array(
+    z.object({
+      name: z.string(),
+      level: z.enum([
+        "novice",
+        "beginner",
+        "intermediate",
+        "advanced",
+        "expert",
+      ]),
+    })
+  ),
+});
 
-type PersonalDetailsProps = {
-  field: PersonalDetailsSchema;
-  index: number;
-};
+const schema = z.object({
+  sections: z.array(
+    z.discriminatedUnion("type", [personalDetailsSchema, skillsSchema])
+  ),
+});
 
-function PersonalDetails(props: PersonalDetailsProps) {
-  const methods = useFormContext();
+type Schema = z.infer<typeof schema>;
+
+/**
+ * Components for all possible sections of the resume
+ */
+
+function PersonalDetails(props: SectionProps) {
+  const methods = useFormContext<Schema>();
 
   return (
     <section className="flex flex-col gap-4">
-      <h3 className="text-xl font-medium">{props.field.title}</h3>
+      <h3 className="text-xl font-medium">
+        {methods.watch(`sections.${props.index}.title`)}
+      </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
         <FormField
           control={methods.control}
@@ -242,24 +316,247 @@ function PersonalDetails(props: PersonalDetailsProps) {
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <FormField
+        control={methods.control}
+        name={`sections.${props.index}.summary`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Summary</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Summarize your qualifications and strengths in 2-3 sentences."
+                {...field}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
     </section>
   );
 }
 
-const schema = z.object({
-  sections: z.array(z.discriminatedUnion("type", [personalDetailsSchema])),
-});
+function Skills(props: SectionProps) {
+  const methods = useFormContext<Schema>();
 
-type Schema = z.infer<typeof schema>;
+  const { fields, append, remove } = useFieldArray({
+    control: methods.control,
+    name: `sections.${props.index}.skills`,
+  });
+
+  return (
+    <section className="flex flex-col gap-8">
+      <div>
+        <h3 className="text-xl font-medium">
+          {methods.watch(`sections.${props.index}.title`)}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Select 5 relevant skills that align with the job requirements. Ensure
+          they resonate with the key skills highlighted in the job post,
+          especially for online applications.
+        </p>
+      </div>
+      <div className="flex flex-col gap-4">
+        {fields.map((field, index) => {
+          return (
+            <div key={field.id} className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex flex-1 flex-col h-auto items-start"
+                  >
+                    <span>
+                      {methods.watch(
+                        `sections.${props.index}.skills.${index}.name`
+                      ) || "(Not specified)"}
+                    </span>
+                    <span className="text-muted-foreground font-normal capitalize text-sm">
+                      {methods.watch(
+                        `sections.${props.index}.skills.${index}.level`
+                      )}
+                    </span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="">
+                  <DialogHeader>
+                    <DialogTitle>Edit skill</DialogTitle>
+                    <DialogDescription>
+                      {methods.watch(
+                        `sections.${props.index}.skills.${index}.name`
+                      ) || "(Not specified)"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <FormField
+                    control={methods.control}
+                    name={`sections.${props.index}.skills.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Name" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={methods.control}
+                    name={`sections.${props.index}.skills.${index}.level`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Level -{" "}
+                          <span className="text-muted-foreground font-normal capitalize">
+                            {methods.watch(
+                              `sections.${props.index}.skills.${index}.level`
+                            )}
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-row"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value="novice"
+                                  className={cn({
+                                    "bg-primary": [
+                                      "novice",
+                                      "beginner",
+                                      "intermediate",
+                                      "advanced",
+                                      "expert",
+                                    ].includes(field.value),
+                                  })}
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value="beginner"
+                                  className={cn({
+                                    "bg-primary": [
+                                      "beginner",
+                                      "intermediate",
+                                      "advanced",
+                                      "expert",
+                                    ].includes(field.value),
+                                  })}
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value="intermediate"
+                                  className={cn({
+                                    "bg-primary": [
+                                      "intermediate",
+                                      "advanced",
+                                      "expert",
+                                    ].includes(field.value),
+                                  })}
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value="advanced"
+                                  className={cn({
+                                    "bg-primary": [
+                                      "advanced",
+                                      "expert",
+                                    ].includes(field.value),
+                                  })}
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value="expert"
+                                  className={cn({
+                                    "bg-primary": ["expert"].includes(
+                                      field.value
+                                    ),
+                                  })}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </DialogContent>
+              </Dialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost" type="button">
+                    <MoreVerticalIcon className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Would you like to remove this skill?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. The skill &nbsp;
+                          <span>
+                            {methods.watch(
+                              `sections.${props.index}.skills.${index}.name`
+                            ) || "(Not specified)"}
+                          </span>
+                          &nbsp; will be permanently removed from your resume.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => remove(index)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        })}
+      </div>
+
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={() => append({ name: "", level: "novice" })}
+      >
+        <PlusIcon className="w-4 h-4" /> Add more skills
+      </Button>
+    </section>
+  );
+}
 
 export default function ResumeForm() {
-  const form = useForm<Schema>({
+  const methods = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
   const { fields } = useFieldArray({
-    control: form.control,
+    control: methods.control,
     name: "sections",
   });
 
@@ -269,14 +566,14 @@ export default function ResumeForm() {
 
   return (
     <div className="p-8 sm:px-12">
-      <Form {...form}>
+      <Form {...methods}>
         <form
           className="flex flex-col gap-4"
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={methods.handleSubmit(onSubmit)}
         >
           {fields.map((field, index) => {
             const Section = SECTIONS[field.type];
-            return <Section field={field} index={index} key={field.id} />;
+            return <Section index={index} key={field.id} />;
           })}
           <Button type="submit">Submit</Button>
         </form>
