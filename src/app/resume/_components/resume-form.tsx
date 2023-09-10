@@ -61,6 +61,7 @@ import {
 const SECTIONS = {
   personalDetails: PersonalDetails,
   skills: Skills,
+  educations: Educations,
 };
 
 type SectionProps = {
@@ -91,6 +92,11 @@ const defaultValues: Schema = {
       title: "Skills",
       type: "skills",
       skills: [],
+    },
+    {
+      title: "Educations",
+      type: "educations",
+      educations: [],
     },
   ],
 };
@@ -135,9 +141,27 @@ const skillsSchema = z.object({
   ),
 });
 
+const educationsSchema = z.object({
+  type: z.literal("educations"),
+  title: z.string().default("Education"),
+  educations: z.array(
+    z.object({
+      school: z.string(),
+      degree: z.string(),
+      startDate: z.string(),
+      endDate: z.string(),
+      description: z.string(),
+    })
+  ),
+});
+
 const schema = z.object({
   sections: z.array(
-    z.discriminatedUnion("type", [personalDetailsSchema, skillsSchema])
+    z.discriminatedUnion("type", [
+      personalDetailsSchema,
+      skillsSchema,
+      educationsSchema,
+    ])
   ),
 });
 
@@ -549,6 +573,201 @@ function Skills(props: SectionProps) {
   );
 }
 
+function Educations(props: SectionProps) {
+  const methods = useFormContext<Schema>();
+
+  const { fields, append, remove } = useFieldArray({
+    control: methods.control,
+    name: `sections.${props.index}.educations`,
+  });
+
+  function school(index: number) {
+    return methods.watch(`sections.${props.index}.educations.${index}.school`);
+  }
+
+  function degree(index: number) {
+    return methods.watch(`sections.${props.index}.educations.${index}.degree`);
+  }
+
+  function startDate(index: number) {
+    return methods.watch(
+      `sections.${props.index}.educations.${index}.startDate`
+    );
+  }
+
+  function endDate(index: number) {
+    return methods.watch(`sections.${props.index}.educations.${index}.endDate`);
+  }
+
+  return (
+    <section className="flex flex-col gap-8">
+      <div>
+        <h3 className="text-xl font-medium">
+          {methods.watch(`sections.${props.index}.title`)}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          A diverse educational background on your resume underscores the unique
+          value and perspective you bring to a position.
+        </p>
+      </div>
+      <div className="flex flex-col gap-4">
+        {fields.map((field, index) => {
+          return (
+            <div key={field.id} className="flex items-center gap-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex flex-1 flex-col h-auto items-start"
+                  >
+                    <span>
+                      {degree(index) || "(Not specified)"}&nbsp;
+                      {degree(index) && school(index) && `at ${school(index)}`}
+                    </span>
+                    <span className="text-muted-foreground font-normal capitalize text-sm">
+                      {startDate(index) && endDate(index)
+                        ? `${startDate(index)} - ${endDate(index)}`
+                        : "June 2022 - Present"}
+                    </span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="">
+                  <DialogHeader>
+                    <DialogTitle>Edit education</DialogTitle>
+                    <DialogDescription>
+                      {degree(index) || "(Not specified)"}&nbsp;
+                      {degree(index) && school(index) && `at ${school(index)}`}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <FormField
+                    control={methods.control}
+                    name={`sections.${props.index}.educations.${index}.school`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>School</FormLabel>
+                        <FormControl>
+                          <Input placeholder="School" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={methods.control}
+                    name={`sections.${props.index}.educations.${index}.degree`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Degree</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Degree" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.educations.${index}.startDate`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Date</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Start Date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.educations.${index}.endDate`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Date</FormLabel>
+                          <FormControl>
+                            <Input placeholder="End date" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={methods.control}
+                    name={`sections.${props.index}.educations.${index}.description`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Bachelor of Science in Computer Engineering."
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </DialogContent>
+              </Dialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost" type="button">
+                    <MoreVerticalIcon className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Would you like to remove this education?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. The education &nbsp;
+                          <span>
+                            {methods.watch(
+                              `sections.${props.index}.educations.${index}.degree`
+                            ) || "(Not specified)"}
+                          </span>
+                          &nbsp; will be permanently removed from your resume.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => remove(index)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        })}
+      </div>
+
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={() =>
+          append({
+            degree: "",
+            school: "",
+            startDate: "",
+            endDate: "",
+            description: "",
+          })
+        }
+      >
+        <PlusIcon className="w-4 h-4" /> Add more educations
+      </Button>
+    </section>
+  );
+}
+
 export default function ResumeForm() {
   const methods = useForm<Schema>({
     resolver: zodResolver(schema),
@@ -568,7 +787,7 @@ export default function ResumeForm() {
     <div className="p-8 sm:px-12">
       <Form {...methods}>
         <form
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-12"
           onSubmit={methods.handleSubmit(onSubmit)}
         >
           {fields.map((field, index) => {
