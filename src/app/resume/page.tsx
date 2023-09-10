@@ -1,6 +1,6 @@
 import ResumeForm from "./_components/resume-form";
 
-export default function Resume() {
+export default function Builder() {
   return (
     <div>
       <ResumeForm />

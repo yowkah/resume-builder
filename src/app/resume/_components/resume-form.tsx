@@ -62,6 +62,7 @@ const SECTIONS = {
   personalDetails: PersonalDetails,
   skills: Skills,
   educations: Educations,
+  employmentHistory: EmploymentHistory,
 };
 
 type SectionProps = {
@@ -97,6 +98,11 @@ const defaultValues: Schema = {
       title: "Educations",
       type: "educations",
       educations: [],
+    },
+    {
+      title: "Employment History",
+      type: "employmentHistory",
+      employments: [],
     },
   ],
 };
@@ -155,12 +161,27 @@ const educationsSchema = z.object({
   ),
 });
 
+const employmentHistorySchema = z.object({
+  type: z.literal("employmentHistory"),
+  title: z.string().default("Employment History"),
+  employments: z.array(
+    z.object({
+      jobTitle: z.string(),
+      company: z.string(),
+      startDate: z.string(),
+      endDate: z.string(),
+      description: z.string(),
+    })
+  ),
+});
+
 const schema = z.object({
   sections: z.array(
     z.discriminatedUnion("type", [
       personalDetailsSchema,
       skillsSchema,
       educationsSchema,
+      employmentHistorySchema,
     ])
   ),
 });
@@ -380,194 +401,196 @@ function Skills(props: SectionProps) {
           especially for online applications.
         </p>
       </div>
-      <div className="flex flex-col gap-4">
-        {fields.map((field, index) => {
-          return (
-            <div key={field.id} className="flex items-center gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex flex-1 flex-col h-auto items-start"
-                  >
-                    <span>
-                      {methods.watch(
-                        `sections.${props.index}.skills.${index}.name`
-                      ) || "(Not specified)"}
-                    </span>
-                    <span className="text-muted-foreground font-normal capitalize text-sm">
-                      {methods.watch(
-                        `sections.${props.index}.skills.${index}.level`
+      {fields.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {fields.map((field, index) => {
+            return (
+              <div key={field.id} className="flex items-center gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex flex-1 flex-col h-auto items-start"
+                    >
+                      <span>
+                        {methods.watch(
+                          `sections.${props.index}.skills.${index}.name`
+                        ) || "(Not specified)"}
+                      </span>
+                      <span className="text-muted-foreground font-normal capitalize text-sm">
+                        {methods.watch(
+                          `sections.${props.index}.skills.${index}.level`
+                        )}
+                      </span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="">
+                    <DialogHeader>
+                      <DialogTitle>Edit skill</DialogTitle>
+                      <DialogDescription>
+                        {methods.watch(
+                          `sections.${props.index}.skills.${index}.name`
+                        ) || "(Not specified)"}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.skills.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Name" {...field} />
+                          </FormControl>
+                        </FormItem>
                       )}
-                    </span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="">
-                  <DialogHeader>
-                    <DialogTitle>Edit skill</DialogTitle>
-                    <DialogDescription>
-                      {methods.watch(
-                        `sections.${props.index}.skills.${index}.name`
-                      ) || "(Not specified)"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <FormField
-                    control={methods.control}
-                    name={`sections.${props.index}.skills.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Name" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={methods.control}
-                    name={`sections.${props.index}.skills.${index}.level`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Level -{" "}
-                          <span className="text-muted-foreground font-normal capitalize">
-                            {methods.watch(
-                              `sections.${props.index}.skills.${index}.level`
-                            )}
-                          </span>
-                        </FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-row"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="novice"
-                                  className={cn({
-                                    "bg-primary": [
-                                      "novice",
-                                      "beginner",
-                                      "intermediate",
-                                      "advanced",
-                                      "expert",
-                                    ].includes(field.value),
-                                  })}
-                                />
-                              </FormControl>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="beginner"
-                                  className={cn({
-                                    "bg-primary": [
-                                      "beginner",
-                                      "intermediate",
-                                      "advanced",
-                                      "expert",
-                                    ].includes(field.value),
-                                  })}
-                                />
-                              </FormControl>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="intermediate"
-                                  className={cn({
-                                    "bg-primary": [
-                                      "intermediate",
-                                      "advanced",
-                                      "expert",
-                                    ].includes(field.value),
-                                  })}
-                                />
-                              </FormControl>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="advanced"
-                                  className={cn({
-                                    "bg-primary": [
-                                      "advanced",
-                                      "expert",
-                                    ].includes(field.value),
-                                  })}
-                                />
-                              </FormControl>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value="expert"
-                                  className={cn({
-                                    "bg-primary": ["expert"].includes(
-                                      field.value
-                                    ),
-                                  })}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </DialogContent>
-              </Dialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" type="button">
-                    <MoreVerticalIcon className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Would you like to remove this skill?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. The skill &nbsp;
-                          <span>
-                            {methods.watch(
-                              `sections.${props.index}.skills.${index}.name`
-                            ) || "(Not specified)"}
-                          </span>
-                          &nbsp; will be permanently removed from your resume.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => remove(index)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        })}
-      </div>
+                    />
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.skills.${index}.level`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Level -{" "}
+                            <span className="text-muted-foreground font-normal capitalize">
+                              {methods.watch(
+                                `sections.${props.index}.skills.${index}.level`
+                              )}
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-row"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="novice"
+                                    className={cn({
+                                      "bg-primary": [
+                                        "novice",
+                                        "beginner",
+                                        "intermediate",
+                                        "advanced",
+                                        "expert",
+                                      ].includes(field.value),
+                                    })}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="beginner"
+                                    className={cn({
+                                      "bg-primary": [
+                                        "beginner",
+                                        "intermediate",
+                                        "advanced",
+                                        "expert",
+                                      ].includes(field.value),
+                                    })}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="intermediate"
+                                    className={cn({
+                                      "bg-primary": [
+                                        "intermediate",
+                                        "advanced",
+                                        "expert",
+                                      ].includes(field.value),
+                                    })}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="advanced"
+                                    className={cn({
+                                      "bg-primary": [
+                                        "advanced",
+                                        "expert",
+                                      ].includes(field.value),
+                                    })}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem
+                                    value="expert"
+                                    className={cn({
+                                      "bg-primary": ["expert"].includes(
+                                        field.value
+                                      ),
+                                    })}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" type="button">
+                      <MoreVerticalIcon className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Would you like to remove this skill?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. The skill &nbsp;
+                            <span>
+                              {methods.watch(
+                                `sections.${props.index}.skills.${index}.name`
+                              ) || "(Not specified)"}
+                            </span>
+                            &nbsp; will be permanently removed from your resume.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(index)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <Button
         variant="ghost"
         type="button"
         onClick={() => append({ name: "", level: "novice" })}
       >
-        <PlusIcon className="w-4 h-4" /> Add more skills
+        <PlusIcon className="w-4 h-4 mr-2" /> Add more skills
       </Button>
     </section>
   );
@@ -610,144 +633,150 @@ function Educations(props: SectionProps) {
           value and perspective you bring to a position.
         </p>
       </div>
-      <div className="flex flex-col gap-4">
-        {fields.map((field, index) => {
-          return (
-            <div key={field.id} className="flex items-center gap-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex flex-1 flex-col h-auto items-start"
-                  >
-                    <span>
-                      {degree(index) || "(Not specified)"}&nbsp;
-                      {degree(index) && school(index) && `at ${school(index)}`}
-                    </span>
-                    <span className="text-muted-foreground font-normal capitalize text-sm">
-                      {startDate(index) && endDate(index)
-                        ? `${startDate(index)} - ${endDate(index)}`
-                        : "June 2022 - Present"}
-                    </span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="">
-                  <DialogHeader>
-                    <DialogTitle>Edit education</DialogTitle>
-                    <DialogDescription>
-                      {degree(index) || "(Not specified)"}&nbsp;
-                      {degree(index) && school(index) && `at ${school(index)}`}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <FormField
-                    control={methods.control}
-                    name={`sections.${props.index}.educations.${index}.school`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>School</FormLabel>
-                        <FormControl>
-                          <Input placeholder="School" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={methods.control}
-                    name={`sections.${props.index}.educations.${index}.degree`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Degree</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Degree" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
+      {fields.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {fields.map((field, index) => {
+            return (
+              <div key={field.id} className="flex items-center gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex flex-1 flex-col h-auto items-start"
+                    >
+                      <span>
+                        {degree(index) || "(Not specified)"}&nbsp;
+                        {degree(index) &&
+                          school(index) &&
+                          `at ${school(index)}`}
+                      </span>
+                      <span className="text-muted-foreground font-normal capitalize text-sm">
+                        {startDate(index) && endDate(index)
+                          ? `${startDate(index)} - ${endDate(index)}`
+                          : "June 2022 - Present"}
+                      </span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="">
+                    <DialogHeader>
+                      <DialogTitle>Edit education</DialogTitle>
+                      <DialogDescription>
+                        {degree(index) || "(Not specified)"}&nbsp;
+                        {degree(index) &&
+                          school(index) &&
+                          `at ${school(index)}`}
+                      </DialogDescription>
+                    </DialogHeader>
                     <FormField
                       control={methods.control}
-                      name={`sections.${props.index}.educations.${index}.startDate`}
+                      name={`sections.${props.index}.educations.${index}.school`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Date</FormLabel>
+                          <FormLabel>School</FormLabel>
                           <FormControl>
-                            <Input placeholder="Start Date" {...field} />
+                            <Input placeholder="School" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={methods.control}
-                      name={`sections.${props.index}.educations.${index}.endDate`}
+                      name={`sections.${props.index}.educations.${index}.degree`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Date</FormLabel>
+                          <FormLabel>Degree</FormLabel>
                           <FormControl>
-                            <Input placeholder="End date" {...field} />
+                            <Input placeholder="Degree" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
                     />
-                  </div>
-                  <FormField
-                    control={methods.control}
-                    name={`sections.${props.index}.educations.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Bachelor of Science in Computer Engineering."
-                            {...field}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </DialogContent>
-              </Dialog>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" type="button">
-                    <MoreVerticalIcon className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Trash2Icon className="w-4 h-4 mr-2" /> Delete
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Would you like to remove this education?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. The education &nbsp;
-                          <span>
-                            {methods.watch(
-                              `sections.${props.index}.educations.${index}.degree`
-                            ) || "(Not specified)"}
-                          </span>
-                          &nbsp; will be permanently removed from your resume.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => remove(index)}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        })}
-      </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={methods.control}
+                        name={`sections.${props.index}.educations.${index}.startDate`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Start Date" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={methods.control}
+                        name={`sections.${props.index}.educations.${index}.endDate`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Date</FormLabel>
+                            <FormControl>
+                              <Input placeholder="End date" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.educations.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Bachelor of Science in Computer Engineering."
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" type="button">
+                      <MoreVerticalIcon className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Would you like to remove this education?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. The education &nbsp;
+                            <span>
+                              {methods.watch(
+                                `sections.${props.index}.educations.${index}.degree`
+                              ) || "(Not specified)"}
+                            </span>
+                            &nbsp; will be permanently removed from your resume.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(index)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <Button
         variant="ghost"
@@ -762,7 +791,214 @@ function Educations(props: SectionProps) {
           })
         }
       >
-        <PlusIcon className="w-4 h-4" /> Add more educations
+        <PlusIcon className="w-4 h-4 mr-2" /> Add more educations
+      </Button>
+    </section>
+  );
+}
+
+function EmploymentHistory(props: SectionProps) {
+  const methods = useFormContext<Schema>();
+
+  const { fields, append, remove } = useFieldArray({
+    control: methods.control,
+    name: `sections.${props.index}.employments`,
+  });
+
+  function jobTitle(index: number) {
+    return methods.watch(
+      `sections.${props.index}.employments.${index}.jobTitle`
+    );
+  }
+
+  function company(index: number) {
+    return methods.watch(
+      `sections.${props.index}.employments.${index}.company`
+    );
+  }
+
+  function startDate(index: number) {
+    return methods.watch(
+      `sections.${props.index}.employments.${index}.startDate`
+    );
+  }
+
+  function endDate(index: number) {
+    return methods.watch(
+      `sections.${props.index}.employments.${index}.endDate`
+    );
+  }
+
+  return (
+    <section className="flex flex-col gap-8">
+      <div>
+        <h3 className="text-xl font-medium">
+          {methods.watch(`sections.${props.index}.title`)}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          A varied work history on your resume highlights the distinct expertise
+          and insights you offer to a role.
+        </p>
+      </div>
+      {fields.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {fields.map((field, index) => {
+            return (
+              <div key={field.id} className="flex items-center gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex flex-1 flex-col h-auto items-start"
+                    >
+                      <span>
+                        {jobTitle(index) || "(Not specified)"}&nbsp;
+                        {jobTitle(index) &&
+                          company(index) &&
+                          `at ${company(index)}`}
+                      </span>
+                      <span className="text-muted-foreground font-normal capitalize text-sm">
+                        {startDate(index) && endDate(index)
+                          ? `${startDate(index)} - ${endDate(index)}`
+                          : "June 2022 - Present"}
+                      </span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="">
+                    <DialogHeader>
+                      <DialogTitle>Edit employment</DialogTitle>
+                      <DialogDescription>
+                        {jobTitle(index) || "(Not specified)"}&nbsp;
+                        {jobTitle(index) &&
+                          company(index) &&
+                          `at ${company(index)}`}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.employments.${index}.jobTitle`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Job Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Job Title" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.employments.${index}.company`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Company" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={methods.control}
+                        name={`sections.${props.index}.employments.${index}.startDate`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Start Date" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={methods.control}
+                        name={`sections.${props.index}.employments.${index}.endDate`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Date</FormLabel>
+                            <FormControl>
+                              <Input placeholder="End date" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.employments.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Managed team projects, coordinated client meetings, and analyzed sales data."
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" type="button">
+                      <MoreVerticalIcon className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Would you like to remove this employment?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. The employment &nbsp;
+                            <span>
+                              {methods.watch(
+                                `sections.${props.index}.employments.${index}.jobTitle`
+                              ) || "(Not specified)"}
+                            </span>
+                            &nbsp; will be permanently removed from your resume.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(index)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={() =>
+          append({
+            company: "",
+            jobTitle: "",
+            startDate: "",
+            endDate: "",
+            description: "",
+          })
+        }
+      >
+        <PlusIcon className="w-4 h-4 mr-2" /> Add more employments
       </Button>
     </section>
   );
