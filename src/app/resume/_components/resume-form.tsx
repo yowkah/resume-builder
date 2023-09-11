@@ -28,22 +28,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import React from "react";
 import z from "zod";
-import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import {
+  UseFieldArrayRemove,
+  useFieldArray,
+  useForm,
+  useFormContext,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronsUpDownIcon,
   MoreVerticalIcon,
+  PencilRulerIcon,
   PlusIcon,
   Trash2Icon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -67,6 +70,7 @@ const SECTIONS = {
 
 type SectionProps = {
   index: number;
+  remove: UseFieldArrayRemove;
 };
 
 const defaultValues: Schema = {
@@ -116,7 +120,7 @@ const personalDetailsSchema = z.object({
   title: z.string().default("Personal Details"),
   firstName: z.string(),
   lastName: z.string(),
-  email: z.string().email(),
+  email: z.string(),
   phone: z.string(),
   country: z.string(),
   city: z.string(),
@@ -392,9 +396,35 @@ function Skills(props: SectionProps) {
   return (
     <section className="flex flex-col gap-8">
       <div>
-        <h3 className="text-xl font-medium">
-          {methods.watch(`sections.${props.index}.title`)}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-xl font-medium">
+            {methods.watch(`sections.${props.index}.title`)}
+          </h3>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="icon" variant="ghost">
+                <Trash2Icon className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Would you like to delete this section?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This section will be permanently
+                  removed from your resume.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => props.remove(props.index)}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
         <p className="text-sm text-muted-foreground">
           Select 5 relevant skills that align with the job requirements. Ensure
           they resonate with the key skills highlighted in the job post,
@@ -599,7 +629,7 @@ function Skills(props: SectionProps) {
 function Educations(props: SectionProps) {
   const methods = useFormContext<Schema>();
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, remove, append } = useFieldArray({
     control: methods.control,
     name: `sections.${props.index}.educations`,
   });
@@ -1010,7 +1040,7 @@ export default function ResumeForm() {
     defaultValues,
   });
 
-  const { fields } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: methods.control,
     name: "sections",
   });
@@ -1020,7 +1050,7 @@ export default function ResumeForm() {
   }
 
   return (
-    <div className="p-8 sm:px-12">
+    <div className="px-6 py-8 sm:px-12">
       <Form {...methods}>
         <form
           className="flex flex-col gap-12"
@@ -1028,8 +1058,30 @@ export default function ResumeForm() {
         >
           {fields.map((field, index) => {
             const Section = SECTIONS[field.type];
-            return <Section index={index} key={field.id} />;
+            return <Section index={index} key={field.id} remove={remove} />;
           })}
+          <section className="flex flex-col gap-8">
+            <div>
+              <h3 className="text-xl font-medium">Add sections</h3>
+            </div>
+            <div className="flex">
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                onClick={() =>
+                  append({
+                    type: "skills",
+                    skills: [],
+                    title: "Skills",
+                  })
+                }
+              >
+                <PencilRulerIcon className="w-4 h-4 mr-2" />
+                Skills section
+              </Button>
+            </div>
+          </section>
           <Button type="submit">Submit</Button>
         </form>
       </Form>
