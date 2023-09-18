@@ -190,7 +190,7 @@ const schema = z.object({
   ),
 });
 
-type Schema = z.infer<typeof schema>;
+export type Schema = z.infer<typeof schema>;
 
 /**
  * Components for all possible sections of the resume
