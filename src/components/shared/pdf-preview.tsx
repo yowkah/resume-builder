@@ -26,6 +26,7 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
   const [numPages, setNumPages] = React.useState(0);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [width, setWidth] = React.useState(450);
+  const [timeoutId, setTimeoutId] = React.useState<NodeJS.Timeout | null>();
 
   const parentRef = React.useRef<HTMLDivElement>(null);
 
@@ -46,11 +47,21 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
   }, [parentRef]);
 
   React.useEffect(() => {
-    pdf(props.children)
-      .toBlob()
-      .then((blob) => {
-        setFile(blob);
-      });
+    // Use timeout for debounce effect to prevent constant rerender.
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    const newTimeoutId = setTimeout(() => {
+      pdf(props.children)
+        .toBlob()
+        .then((blob) => {
+          setFile(blob);
+        });
+    }, 1000);
+
+    setTimeoutId(newTimeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.children]);
 
   return (

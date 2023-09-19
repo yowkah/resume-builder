@@ -30,11 +30,10 @@ import React from "react";
 import z from "zod";
 import {
   UseFieldArrayRemove,
+  UseFormReturn,
   useFieldArray,
-  useForm,
   useFormContext,
 } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronsUpDownIcon,
   MoreVerticalIcon,
@@ -60,6 +59,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { TextEditor } from "@/components/ui/text-editor";
 
 const SECTIONS = {
   personalDetails: PersonalDetails,
@@ -73,49 +73,11 @@ type SectionProps = {
   remove: UseFieldArrayRemove;
 };
 
-const defaultValues: Schema = {
-  sections: [
-    {
-      title: "Personal Details",
-      type: "personalDetails",
-      firstName: "",
-      lastName: "",
-      city: "",
-      country: "",
-      postalCode: "",
-      drivingLicense: "",
-      dateOfBirth: "",
-      placeOfBirth: "",
-      nationality: "",
-      address: "",
-      email: "",
-      phone: "",
-      summary: "",
-      wantedJobTitle: "",
-    },
-    {
-      title: "Skills",
-      type: "skills",
-      skills: [],
-    },
-    {
-      title: "Educations",
-      type: "educations",
-      educations: [],
-    },
-    {
-      title: "Employment History",
-      type: "employmentHistory",
-      employments: [],
-    },
-  ],
-};
-
 /**
  * Schemas for all possible sections of the resume
  */
 
-const personalDetailsSchema = z.object({
+export const personalDetailsSchema = z.object({
   type: z.literal("personalDetails"),
   title: z.string().default("Personal Details"),
   firstName: z.string(),
@@ -134,7 +96,7 @@ const personalDetailsSchema = z.object({
   wantedJobTitle: z.string(),
 });
 
-const skillsSchema = z.object({
+export const skillsSchema = z.object({
   type: z.literal("skills"),
   title: z.string().default("Skills"),
   skills: z.array(
@@ -151,7 +113,7 @@ const skillsSchema = z.object({
   ),
 });
 
-const educationsSchema = z.object({
+export const educationsSchema = z.object({
   type: z.literal("educations"),
   title: z.string().default("Education"),
   educations: z.array(
@@ -165,7 +127,7 @@ const educationsSchema = z.object({
   ),
 });
 
-const employmentHistorySchema = z.object({
+export const employmentHistorySchema = z.object({
   type: z.literal("employmentHistory"),
   title: z.string().default("Employment History"),
   employments: z.array(
@@ -373,9 +335,10 @@ function PersonalDetails(props: SectionProps) {
           <FormItem>
             <FormLabel>Summary</FormLabel>
             <FormControl>
-              <Textarea
+              <TextEditor
+                onChange={field.onChange}
+                defaultValue={field.value}
                 placeholder="Summarize your qualifications and strengths in 2-3 sentences."
-                {...field}
               />
             </FormControl>
           </FormItem>
@@ -754,9 +717,10 @@ function Educations(props: SectionProps) {
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea
+                            <TextEditor
+                              onChange={field.onChange}
+                              defaultValue={field.value}
                               placeholder="Bachelor of Science in Computer Engineering."
-                              {...field}
                             />
                           </FormControl>
                         </FormItem>
@@ -961,9 +925,10 @@ function EmploymentHistory(props: SectionProps) {
                         <FormItem>
                           <FormLabel>Description</FormLabel>
                           <FormControl>
-                            <Textarea
+                            <TextEditor
+                              onChange={field.onChange}
+                              defaultValue={field.value}
                               placeholder="Managed team projects, coordinated client meetings, and analyzed sales data."
-                              {...field}
                             />
                           </FormControl>
                         </FormItem>
@@ -1034,11 +999,12 @@ function EmploymentHistory(props: SectionProps) {
   );
 }
 
-export default function ResumeForm() {
-  const methods = useForm<Schema>({
-    resolver: zodResolver(schema),
-    defaultValues,
-  });
+type ResumeFormProps = {
+  methods: UseFormReturn<Schema>;
+};
+
+export default function ResumeForm(props: ResumeFormProps) {
+  const { methods } = props;
 
   const { fields, append, remove } = useFieldArray({
     control: methods.control,
@@ -1050,8 +1016,8 @@ export default function ResumeForm() {
   }
 
   return (
-    <div className="px-6 py-8 sm:px-12">
-      <Form {...methods}>
+    <Form {...methods}>
+      <div className="px-6 py-8 sm:px-12">
         <form
           className="flex flex-col gap-12"
           onSubmit={methods.handleSubmit(onSubmit)}
@@ -1082,9 +1048,8 @@ export default function ResumeForm() {
               </Button>
             </div>
           </section>
-          <Button type="submit">Submit</Button>
         </form>
-      </Form>
-    </div>
+      </div>
+    </Form>
   );
 }
