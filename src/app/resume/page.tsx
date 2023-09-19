@@ -79,16 +79,23 @@ export type Schema = z.infer<typeof schema>;
 export default function Builder() {
   const [showPreview, setShowPreview] = React.useState(false);
 
+  function calculateDefaultValues() {
+    if (typeof window === "undefined") return defaultValues;
+
+    let result = null;
+
+    try {
+      result = schema.parse(JSON.parse(localStorage.getItem("resume") || ""));
+    } catch (error) {
+      result = defaultValues;
+    }
+
+    return result;
+  }
+
   const methods = useForm<Schema>({
     resolver: zodResolver(schema),
-    async defaultValues() {
-      if (typeof window === "undefined") return defaultValues;
-
-      return (
-        (JSON.parse(localStorage.getItem("resume") || "{}") as Schema | null) ||
-        defaultValues
-      );
-    },
+    defaultValues: calculateDefaultValues(),
   });
 
   const formData = methods.watch();
