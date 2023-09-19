@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { debounce } from "lodash";
+import NoSSR from "react-no-ssr";
 
 const defaultValues: Schema = {
   sections: [
@@ -80,9 +81,14 @@ export default function Builder() {
 
   const methods = useForm<Schema>({
     resolver: zodResolver(schema),
-    defaultValues:
-      (JSON.parse(localStorage.getItem("resume") || "{}") as Schema | null) ||
-      defaultValues,
+    async defaultValues() {
+      if (typeof window === "undefined") return defaultValues;
+
+      return (
+        (JSON.parse(localStorage.getItem("resume") || "{}") as Schema | null) ||
+        defaultValues
+      );
+    },
   });
 
   const formData = methods.watch();
@@ -128,40 +134,44 @@ export default function Builder() {
           <Button onClick={() => setShowPreview(false)}>
             <ChevronLeftIcon className="w-4 h-4 mr-2" /> Back to editor
           </Button>
-          <PDFDownloadLink
-            document={<Resume data={formData} />}
-            fileName="resume.pdf"
-          >
-            {({ blob, url, loading, error }) =>
-              loading ? (
-                <Button size="lg" disabled>
-                  <Loader2Icon
-                    className={cn("mr-2 h-4 w-4 animate-spin", {
-                      hidden: !loading,
-                    })}
-                  />
-                  Download PDF
-                </Button>
-              ) : (
-                <Button size="lg">
-                  <DownloadIcon className="w-4 h-4 mr-2" /> Download
-                </Button>
-              )
-            }
-          </PDFDownloadLink>
-        </div>
-        <div className="overflow-hidden p-12 flex-1 space-y-4">
-          <div className="hidden lg:flex justify-end">
+          <NoSSR>
             <PDFDownloadLink
               document={<Resume data={formData} />}
               fileName="resume.pdf"
             >
-              {() => (
-                <Button>
-                  <DownloadIcon className="w-4 h-4 mr-2" /> Download
-                </Button>
-              )}
+              {({ blob, url, loading, error }) =>
+                loading ? (
+                  <Button size="lg" disabled>
+                    <Loader2Icon
+                      className={cn("mr-2 h-4 w-4 animate-spin", {
+                        hidden: !loading,
+                      })}
+                    />
+                    Download PDF
+                  </Button>
+                ) : (
+                  <Button size="lg">
+                    <DownloadIcon className="w-4 h-4 mr-2" /> Download
+                  </Button>
+                )
+              }
             </PDFDownloadLink>
+          </NoSSR>
+        </div>
+        <div className="overflow-hidden p-12 flex-1 space-y-4">
+          <div className="hidden lg:flex justify-end">
+            <NoSSR>
+              <PDFDownloadLink
+                document={<Resume data={formData} />}
+                fileName="resume.pdf"
+              >
+                {() => (
+                  <Button>
+                    <DownloadIcon className="w-4 h-4 mr-2" /> Download
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            </NoSSR>
           </div>
           <PDFPreview>
             <Resume data={formData} />
