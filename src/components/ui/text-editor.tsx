@@ -76,7 +76,7 @@ export function TextEditor(props: TextEditorProps) {
     editorProps: {
       attributes: {
         class:
-          "min-h-[80px] max-h-[180px] w-full rounded-md rounded-tr-none rounded-tl-none border border-input bg-transparent px-3 py-2 border--0 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-auto",
+          "focus:text-base sm:focus:text-sm min-h-[80px] max-h-[180px] w-full rounded-md rounded-tr-none rounded-tl-none border border-input bg-transparent px-3 py-2 border--0 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-auto",
       },
     },
     extensions: [
