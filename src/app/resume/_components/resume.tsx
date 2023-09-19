@@ -146,7 +146,9 @@ export default function Resume(props: ResumeProps) {
           })}
         </View>
         <View style={styles.mainContent}>
-          <Html stylesheet={stylesheet}>{summaryHtml}</Html>
+          <View style={styles.section}>
+            <Html stylesheet={stylesheet}>{summaryHtml}</Html>
+          </View>
           {data.sections.map((section, sectionIdx) => {
             if (section.type !== "personalDetails") {
               return (

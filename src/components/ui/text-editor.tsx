@@ -32,6 +32,7 @@ function Toolbar(props: ToolbarProps) {
         size="sm"
         pressed={editor.isActive("italic")}
         onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+        disabled={true}
       >
         <ItalicIcon className="h-4 w-4" />
       </Toggle>
@@ -46,6 +47,7 @@ function Toolbar(props: ToolbarProps) {
         size="sm"
         pressed={editor.isActive("bulletList")}
         onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+        disabled={true}
       >
         <ListIcon className="h-4 w-4" />
       </Toggle>
@@ -53,6 +55,7 @@ function Toolbar(props: ToolbarProps) {
         size="sm"
         pressed={editor.isActive("orderedList")}
         onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+        disabled={true}
       >
         <ListOrderedIcon className="h-4 w-4" />
       </Toggle>

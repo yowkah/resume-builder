@@ -112,7 +112,7 @@ export default function Builder() {
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {(isLargeScreen || !showPreview) && (
-        <div className="lg:flex-none flex-1 lg:basis-1/2 max-h-full overflow-auto">
+        <div className="lg:flex-none flex-1 lg:basis-1/2 max-h-full lg:overflow-auto">
           <ResumeForm methods={methods} />
           <Button
             className="lg:hidden fixed right-8 bottom-8"
