@@ -26,9 +26,9 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
   const [numPages, setNumPages] = React.useState(0);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [width, setWidth] = React.useState(450);
-  const [timeoutId, setTimeoutId] = React.useState<NodeJS.Timeout | null>();
 
   const parentRef = React.useRef<HTMLDivElement>(null);
+  const timeoutIdRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     window.addEventListener("resize", () => {
@@ -47,21 +47,23 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
   }, [parentRef]);
 
   React.useEffect(() => {
-    // Use timeout for debounce effect to prevent constant rerender.
-    if (timeoutId) {
-      clearTimeout(timeoutId);
+    if (timeoutIdRef.current !== null) {
+      clearTimeout(timeoutIdRef.current);
     }
 
-    const newTimeoutId = setTimeout(() => {
+    timeoutIdRef.current = setTimeout(() => {
       pdf(props.children)
         .toBlob()
         .then((blob) => {
           setFile(blob);
         });
-    }, 1000);
+    }, 3000);
 
-    setTimeoutId(newTimeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
   }, [props.children]);
 
   return (
@@ -74,7 +76,9 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
         <Loader2Icon className="mt-16 h-6 w-6 animate-spin" />
       </div>
       <div
-        className={cn("flex flex-col items-center gap-4", { hidden: loading })}
+        className={cn("flex flex-col items-center gap-4", {
+          hidden: loading,
+        })}
       >
         <Document
           file={file}

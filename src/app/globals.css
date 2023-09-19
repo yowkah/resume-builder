@@ -59,10 +59,46 @@
 }
 
 .tiptap p.is-editor-empty:first-child::before {
-  /* color: red; */
+  @apply text-muted-foreground;
   content: attr(data-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
-  @apply text-muted-foreground;
+}
+
+/* Custom styles for react-date-picker */
+.react-date-picker {
+  @apply w-[280px] flex items-center border rounded-md;
+}
+
+.react-date-picker__wrapper {
+  @apply flex-grow;
+}
+
+.react-date-picker__inputGroup {
+  @apply flex items-center;
+}
+
+.react-date-picker__inputGroup__input {
+  @apply text-left p-2;
+}
+
+.react-date-picker__button {
+  @apply flex items-center justify-center w-7 h-7 p-0 opacity-50 hover:opacity-100;
+}
+
+.react-calendar {
+  @apply p-3;
+}
+
+.react-calendar__month-view__weekdays {
+  @apply flex space-x-1 text-sm;
+}
+
+.react-calendar__month-view__days {
+  @apply flex flex-wrap;
+}
+
+.react-calendar__tile {
+  @apply w-9 h-9 flex items-center justify-center;
 }

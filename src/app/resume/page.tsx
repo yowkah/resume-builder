@@ -7,7 +7,7 @@ import ResumeForm, {
   personalDetailsSchema,
   skillsSchema,
 } from "./_components/resume-form";
-import Resume from "./_components/resume";
+import { Template } from "./_components/template";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, DownloadIcon, FileIcon } from "lucide-react";
 import { useBreakpoint } from "@/lib/utils";
@@ -31,7 +31,7 @@ const defaultValues: Schema = {
       country: "",
       postalCode: "",
       drivingLicense: "",
-      dateOfBirth: "",
+      dateOfBirth: null,
       placeOfBirth: "",
       nationality: "",
       address: "",
@@ -71,12 +71,12 @@ const schema = z.object({
 
 export type Schema = z.infer<typeof schema>;
 
-export default function Builder() {
+export default function Page() {
   const [showPreview, setShowPreview] = React.useState(false);
 
   const isLargeScreen = useBreakpoint("lg");
 
-  function calculateDefaultValues() {
+  const createDefaultValues = React.useMemo(() => {
     if (typeof window === "undefined") return defaultValues;
 
     let result = null;
@@ -84,15 +84,15 @@ export default function Builder() {
     try {
       result = schema.parse(JSON.parse(localStorage.getItem("resume") || ""));
     } catch (error) {
+      console.log(error);
       result = defaultValues;
     }
 
     return result;
-  }
-
+  }, []);
   const methods = useForm<Schema>({
     resolver: zodResolver(schema),
-    defaultValues: calculateDefaultValues(),
+    defaultValues: createDefaultValues,
   });
 
   const formData = methods.watch();
@@ -113,7 +113,9 @@ export default function Builder() {
     <div className="flex flex-col lg:flex-row h-screen">
       {(isLargeScreen || !showPreview) && (
         <div className="lg:flex-none flex-1 lg:basis-1/2 max-h-full lg:overflow-auto">
-          <ResumeForm methods={methods} />
+          <NoSSR>
+            <ResumeForm methods={methods} />
+          </NoSSR>
           <Button
             className="lg:hidden fixed right-8 bottom-8"
             onClick={() => setShowPreview(true)}
@@ -130,7 +132,7 @@ export default function Builder() {
             </Button>
             <NoSSR>
               <PDFDownloadLink
-                document={<Resume data={formData} />}
+                document={<Template data={formData} />}
                 fileName="resume.pdf"
               >
                 <Button size="lg">
@@ -143,7 +145,7 @@ export default function Builder() {
             <div className="hidden lg:flex justify-end">
               <NoSSR>
                 <PDFDownloadLink
-                  document={<Resume data={formData} />}
+                  document={<Template data={formData} />}
                   fileName="resume.pdf"
                 >
                   <Button>
@@ -153,7 +155,7 @@ export default function Builder() {
               </NoSSR>
             </div>
             <PDFPreview>
-              <Resume data={formData} />
+              <Template data={formData} />
             </PDFPreview>
           </div>
         </div>

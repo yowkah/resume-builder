@@ -23,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import React from "react";
@@ -60,6 +59,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { TextEditor } from "@/components/ui/text-editor";
+import { DatePicker } from "@/components/ui/date-picker";
+import { MonthPicker } from "@/components/ui/month-picker";
+import { format } from "date-fns";
 
 const SECTIONS = {
   personalDetails: PersonalDetails,
@@ -77,6 +79,27 @@ type SectionProps = {
  * Schemas for all possible sections of the resume
  */
 
+const lenientDate = z
+  .union([z.date(), z.string()])
+  .refine(
+    (value) => {
+      if (typeof value === "string") {
+        const date = new Date(value);
+        return !isNaN(date.getTime());
+      }
+      return true;
+    },
+    {
+      message: "Invalid date",
+    }
+  )
+  .transform((value) => {
+    if (typeof value === "string") {
+      return new Date(value);
+    }
+    return value;
+  });
+
 export const personalDetailsSchema = z.object({
   type: z.literal("personalDetails"),
   title: z.string().default("Personal Details"),
@@ -91,7 +114,7 @@ export const personalDetailsSchema = z.object({
   drivingLicense: z.string(),
   nationality: z.string(),
   placeOfBirth: z.string(),
-  dateOfBirth: z.string(),
+  dateOfBirth: lenientDate.nullable(),
   summary: z.string(),
   wantedJobTitle: z.string(),
 });
@@ -120,8 +143,8 @@ export const educationsSchema = z.object({
     z.object({
       school: z.string(),
       degree: z.string(),
-      startDate: z.string(),
-      endDate: z.string(),
+      startDate: lenientDate.nullable(),
+      endDate: lenientDate.nullable(),
       description: z.string(),
     })
   ),
@@ -134,8 +157,8 @@ export const employmentHistorySchema = z.object({
     z.object({
       jobTitle: z.string(),
       company: z.string(),
-      startDate: z.string(),
-      endDate: z.string(),
+      startDate: lenientDate.nullable(),
+      endDate: lenientDate.nullable(),
       description: z.string(),
     })
   ),
@@ -319,7 +342,10 @@ function PersonalDetails(props: SectionProps) {
                 <FormItem>
                   <FormLabel>Date of Birth</FormLabel>
                   <FormControl>
-                    <Input placeholder="Date of Birth" {...field} />
+                    <DatePicker
+                      setSelectedDate={field.onChange}
+                      selectedDate={field.value ?? undefined}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -606,13 +632,27 @@ function Educations(props: SectionProps) {
   }
 
   function startDate(index: number) {
-    return methods.watch(
+    const date = methods.watch(
       `sections.${props.index}.educations.${index}.startDate`
     );
+
+    if (!date) {
+      return null;
+    }
+
+    return format(date, "MMM yyyy");
   }
 
   function endDate(index: number) {
-    return methods.watch(`sections.${props.index}.educations.${index}.endDate`);
+    const date = methods.watch(
+      `sections.${props.index}.educations.${index}.endDate`
+    );
+
+    if (!date) {
+      return null;
+    }
+
+    return format(date, "MMM yyyy");
   }
 
   return (
@@ -692,7 +732,10 @@ function Educations(props: SectionProps) {
                           <FormItem>
                             <FormLabel>Start Date</FormLabel>
                             <FormControl>
-                              <Input placeholder="Start Date" {...field} />
+                              <MonthPicker
+                                onChange={field.onChange}
+                                value={field.value}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -704,7 +747,10 @@ function Educations(props: SectionProps) {
                           <FormItem>
                             <FormLabel>End Date</FormLabel>
                             <FormControl>
-                              <Input placeholder="End date" {...field} />
+                              <MonthPicker
+                                onChange={field.onChange}
+                                value={field.value}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -779,8 +825,8 @@ function Educations(props: SectionProps) {
           append({
             degree: "",
             school: "",
-            startDate: "",
-            endDate: "",
+            startDate: null,
+            endDate: null,
             description: "",
           })
         }
@@ -812,15 +858,27 @@ function EmploymentHistory(props: SectionProps) {
   }
 
   function startDate(index: number) {
-    return methods.watch(
+    const date = methods.watch(
       `sections.${props.index}.employments.${index}.startDate`
     );
+
+    if (!date) {
+      return null;
+    }
+
+    return format(date, "MMM yyyy");
   }
 
   function endDate(index: number) {
-    return methods.watch(
+    const date = methods.watch(
       `sections.${props.index}.employments.${index}.endDate`
     );
+
+    if (!date) {
+      return null;
+    }
+
+    return format(date, "MMM yyyy");
   }
 
   return (
@@ -900,7 +958,10 @@ function EmploymentHistory(props: SectionProps) {
                           <FormItem>
                             <FormLabel>Start Date</FormLabel>
                             <FormControl>
-                              <Input placeholder="Start Date" {...field} />
+                              <MonthPicker
+                                onChange={field.onChange}
+                                value={field.value}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -912,7 +973,10 @@ function EmploymentHistory(props: SectionProps) {
                           <FormItem>
                             <FormLabel>End Date</FormLabel>
                             <FormControl>
-                              <Input placeholder="End date" {...field} />
+                              <MonthPicker
+                                onChange={field.onChange}
+                                value={field.value}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -987,8 +1051,8 @@ function EmploymentHistory(props: SectionProps) {
           append({
             company: "",
             jobTitle: "",
-            startDate: "",
-            endDate: "",
+            startDate: null,
+            endDate: null,
             description: "",
           })
         }

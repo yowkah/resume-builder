@@ -11,6 +11,7 @@ import {
 } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
 import { Schema } from "./resume-form";
+import { format } from "date-fns";
 
 Font.register({
   family: "Inter",
@@ -99,7 +100,7 @@ const stylesheet = {
     fontFamily: "Inter",
   },
   strong: {
-    fontWeight: "semibold",
+    fontWeight: 400,
   },
   em: {
     fontStyle: "italic",
@@ -110,7 +111,7 @@ type ResumeProps = {
   data: Schema;
 };
 
-export default function Resume(props: ResumeProps) {
+export function Template(props: ResumeProps) {
   const { data } = props;
 
   let summaryHtml = "";
@@ -137,7 +138,10 @@ export default function Resume(props: ResumeProps) {
                   <Text style={styles.content}>{section.drivingLicense}</Text>
                   <Text style={styles.content}>{section.nationality}</Text>
                   <Text style={styles.content}>{section.placeOfBirth}</Text>
-                  <Text style={styles.content}>{section.dateOfBirth}</Text>
+                  <Text style={styles.content}>
+                    {section.dateOfBirth &&
+                      format(section.dateOfBirth, "MMMM d, yyyy")}
+                  </Text>
                   <Text style={styles.content}>{section.wantedJobTitle}</Text>
                 </View>
               );
