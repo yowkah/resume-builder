@@ -35,6 +35,7 @@ import {
 } from "react-hook-form";
 import {
   ChevronsUpDownIcon,
+  GlobeIcon,
   MoreVerticalIcon,
   PencilRulerIcon,
   PlusIcon,
@@ -62,12 +63,20 @@ import { TextEditor } from "@/components/ui/text-editor";
 import { DatePicker } from "@/components/ui/date-picker";
 import { MonthPicker } from "@/components/ui/month-picker";
 import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const SECTIONS = {
   personalDetails: PersonalDetails,
   skills: Skills,
   educations: Educations,
   employmentHistory: EmploymentHistory,
+  languages: Languages,
 };
 
 type SectionProps = {
@@ -164,6 +173,17 @@ export const employmentHistorySchema = z.object({
   ),
 });
 
+export const languagesSchema = z.object({
+  type: z.literal("languages"),
+  title: z.string().default("Languages"),
+  languages: z.array(
+    z.object({
+      name: z.string(),
+      level: z.enum(["native", "fluent", "intermediate", "basic"]),
+    })
+  ),
+});
+
 const schema = z.object({
   sections: z.array(
     z.discriminatedUnion("type", [
@@ -171,6 +191,7 @@ const schema = z.object({
       skillsSchema,
       educationsSchema,
       employmentHistorySchema,
+      languagesSchema,
     ])
   ),
 });
@@ -375,12 +396,19 @@ function PersonalDetails(props: SectionProps) {
 }
 
 function Skills(props: SectionProps) {
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
   const methods = useFormContext<Schema>();
 
   const { fields, append, remove } = useFieldArray({
     control: methods.control,
     name: `sections.${props.index}.skills`,
   });
+
+  function createSkill() {
+    append({ level: "novice", name: "" });
+    setOpenIndex(fields.length);
+  }
 
   return (
     <section className="flex flex-col gap-8">
@@ -425,7 +453,7 @@ function Skills(props: SectionProps) {
           {fields.map((field, index) => {
             return (
               <div key={field.id} className="flex items-center gap-2">
-                <Dialog>
+                <Dialog defaultOpen={index === openIndex}>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -443,7 +471,7 @@ function Skills(props: SectionProps) {
                       </span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="">
+                  <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Edit skill</DialogTitle>
                       <DialogDescription>
@@ -607,7 +635,8 @@ function Skills(props: SectionProps) {
       <Button
         variant="ghost"
         type="button"
-        onClick={() => append({ name: "", level: "novice" })}
+        className="justify-start"
+        onClick={createSkill}
       >
         <PlusIcon className="w-4 h-4 mr-2" /> Add more skills
       </Button>
@@ -617,6 +646,8 @@ function Skills(props: SectionProps) {
 
 function Educations(props: SectionProps) {
   const methods = useFormContext<Schema>();
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   const { fields, remove, append } = useFieldArray({
     control: methods.control,
@@ -655,6 +686,18 @@ function Educations(props: SectionProps) {
     return format(date, "MMM yyyy");
   }
 
+  function createEducation() {
+    append({
+      degree: "",
+      school: "",
+      startDate: null,
+      endDate: null,
+      description: "",
+    });
+
+    setOpenIndex(fields.length);
+  }
+
   return (
     <section className="flex flex-col gap-8">
       <div>
@@ -671,7 +714,7 @@ function Educations(props: SectionProps) {
           {fields.map((field, index) => {
             return (
               <div key={field.id} className="flex items-center gap-2">
-                <Dialog>
+                <Dialog defaultOpen={index === openIndex}>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -821,15 +864,8 @@ function Educations(props: SectionProps) {
       <Button
         variant="ghost"
         type="button"
-        onClick={() =>
-          append({
-            degree: "",
-            school: "",
-            startDate: null,
-            endDate: null,
-            description: "",
-          })
-        }
+        onClick={createEducation}
+        className="justify-start"
       >
         <PlusIcon className="w-4 h-4 mr-2" /> Add more educations
       </Button>
@@ -839,6 +875,8 @@ function Educations(props: SectionProps) {
 
 function EmploymentHistory(props: SectionProps) {
   const methods = useFormContext<Schema>();
+
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
 
   const { fields, append, remove } = useFieldArray({
     control: methods.control,
@@ -881,6 +919,17 @@ function EmploymentHistory(props: SectionProps) {
     return format(date, "MMM yyyy");
   }
 
+  function createEmployment() {
+    append({
+      company: "",
+      jobTitle: "",
+      startDate: null,
+      endDate: null,
+      description: "",
+    });
+    setOpenIndex(fields.length);
+  }
+
   return (
     <section className="flex flex-col gap-8">
       <div>
@@ -897,7 +946,7 @@ function EmploymentHistory(props: SectionProps) {
           {fields.map((field, index) => {
             return (
               <div key={field.id} className="flex items-center gap-2">
-                <Dialog>
+                <Dialog defaultOpen={index === openIndex}>
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
@@ -1047,17 +1096,201 @@ function EmploymentHistory(props: SectionProps) {
       <Button
         variant="ghost"
         type="button"
-        onClick={() =>
-          append({
-            company: "",
-            jobTitle: "",
-            startDate: null,
-            endDate: null,
-            description: "",
-          })
-        }
+        onClick={createEmployment}
+        className="justify-start"
       >
         <PlusIcon className="w-4 h-4 mr-2" /> Add more employments
+      </Button>
+    </section>
+  );
+}
+
+function Languages(props: SectionProps) {
+  const [openIndex, setOpenIndex] = React.useState<number | null>(null);
+
+  const methods = useFormContext<Schema>();
+
+  const { fields, append, remove } = useFieldArray({
+    control: methods.control,
+    name: `sections.${props.index}.languages`,
+  });
+
+  function createLanguage() {
+    append({ level: "basic", name: "" });
+    setOpenIndex(fields.length);
+  }
+
+  return (
+    <section className="flex flex-col gap-8">
+      <div>
+        <div className="flex items-center gap-2">
+          <h3 className="text-xl font-medium">
+            {methods.watch(`sections.${props.index}.title`)}
+          </h3>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="icon" variant="ghost">
+                <Trash2Icon className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Would you like to delete this section?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This section will be permanently
+                  removed from your resume.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => props.remove(props.index)}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          List the languages you are proficient in, both spoken and written.
+          Highlight any languages that are particularly relevant to the job you
+          are applying for.
+        </p>
+      </div>
+      {fields.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {fields.map((field, index) => {
+            return (
+              <div key={field.id} className="flex items-center gap-2">
+                <Dialog defaultOpen={index === openIndex}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex flex-1 flex-col h-auto items-start"
+                    >
+                      <span>
+                        {methods.watch(
+                          `sections.${props.index}.languages.${index}.name`
+                        ) || "(Not specified)"}
+                      </span>
+                      <span className="text-muted-foreground font-normal capitalize text-sm">
+                        {methods.watch(
+                          `sections.${props.index}.languages.${index}.level`
+                        )}
+                      </span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit language</DialogTitle>
+                      <DialogDescription>
+                        {methods.watch(
+                          `sections.${props.index}.languages.${index}.name`
+                        ) || "(Not specified)"}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.languages.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Name" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={methods.control}
+                      name={`sections.${props.index}.languages.${index}.level`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Level -{" "}
+                            <span className="text-muted-foreground font-normal capitalize">
+                              {methods.watch(
+                                `sections.${props.index}.languages.${index}.level`
+                              )}
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a verified email to display" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="native">Native</SelectItem>
+                                <SelectItem value="fluent">Fluent</SelectItem>
+                                <SelectItem value="intermediate">
+                                  Intermediate
+                                </SelectItem>
+                                <SelectItem value="basic">Basic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" type="button">
+                      <MoreVerticalIcon className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Trash2Icon className="w-4 h-4 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Would you like to remove this language?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. The language &nbsp;
+                            <span>
+                              {methods.watch(
+                                `sections.${props.index}.languages.${index}.name`
+                              ) || "(Not specified)"}
+                            </span>
+                            &nbsp; will be permanently removed from your resume.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => remove(index)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Button
+        variant="ghost"
+        type="button"
+        className="justify-start"
+        onClick={createLanguage}
+      >
+        <PlusIcon className="w-4 h-4 mr-2" /> Add more skills
       </Button>
     </section>
   );
@@ -1094,7 +1327,7 @@ export default function ResumeForm(props: ResumeFormProps) {
             <div>
               <h3 className="text-xl font-medium">Add sections</h3>
             </div>
-            <div className="flex">
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 type="button"
@@ -1108,7 +1341,23 @@ export default function ResumeForm(props: ResumeFormProps) {
                 }
               >
                 <PencilRulerIcon className="w-4 h-4 mr-2" />
-                Skills section
+                Skills
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                size="lg"
+                disabled={fields.some((field) => field.type === "languages")}
+                onClick={() =>
+                  append({
+                    type: "languages",
+                    languages: [],
+                    title: "Languages",
+                  })
+                }
+              >
+                <GlobeIcon className="w-4 h-4 mr-2" />
+                Languages
               </Button>
             </div>
           </section>

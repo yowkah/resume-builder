@@ -57,9 +57,9 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: "row",
     padding: 30,
     fontFamily: "Inter",
+    flexDirection: "row",
   },
   sidebar: {
     width: "30%",
@@ -70,12 +70,11 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   section: {
-    margin: 10,
-    padding: 10,
+    marginBottom: 15,
   },
   title: {
-    fontSize: 14,
-    fontWeight: "semibold",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   content: {
     fontSize: 10,
@@ -85,10 +84,24 @@ const styles = StyleSheet.create({
     borderBottomColor: "#000",
     marginVertical: 5,
   },
+  name: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  subSection: {
+    marginBottom: 10,
+  },
+  subSectionTitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  subSectionDate: {
+    fontSize: 8,
+    color: "#666",
+    marginBottom: 2,
+  },
   summary: {
-    fontSize: 12,
-    margin: 10,
-    padding: 10,
+    marginBottom: 10,
   },
 });
 
@@ -107,14 +120,15 @@ const stylesheet = {
   },
 };
 
-type ResumeProps = {
+type TemplateProps = {
   data: Schema;
 };
 
-export function Template(props: ResumeProps) {
+export function Template(props: TemplateProps) {
   const { data } = props;
 
   let summaryHtml = "";
+  let personalDetails = null;
 
   return (
     <Document>
@@ -125,58 +139,96 @@ export function Template(props: ResumeProps) {
               summaryHtml = section.summary;
               return (
                 <View key={sectionIdx} style={styles.section}>
-                  <Text style={styles.content}>
+                  <Text style={styles.name}>
                     {section.firstName} {section.lastName}
                   </Text>
+                  <Text style={styles.content}>{section.wantedJobTitle}</Text>
                   <Text style={styles.content}>{section.email}</Text>
                   <Text style={styles.content}>{section.phone}</Text>
                   <Text style={styles.content}>
                     {section.country}, {section.city}
                   </Text>
-                  <Text style={styles.content}>{section.address}</Text>
-                  <Text style={styles.content}>{section.postalCode}</Text>
-                  <Text style={styles.content}>{section.drivingLicense}</Text>
-                  <Text style={styles.content}>{section.nationality}</Text>
                   <Text style={styles.content}>{section.placeOfBirth}</Text>
                   <Text style={styles.content}>
                     {section.dateOfBirth &&
                       format(section.dateOfBirth, "MMMM d, yyyy")}
                   </Text>
-                  <Text style={styles.content}>{section.wantedJobTitle}</Text>
+                  <Text style={styles.content}>{section.address}</Text>
+                  <Text style={styles.content}>{section.postalCode}</Text>
+                  <Text style={styles.content}>
+                    <Text>License: </Text>
+                    {section.drivingLicense}
+                  </Text>
+                  <Text style={styles.content}>{section.nationality}</Text>
+                </View>
+              );
+            } else if (section.type === "skills") {
+              return (
+                <View key={sectionIdx} style={styles.section}>
+                  <Text style={styles.title}>{section.title}</Text>
+                  <View style={styles.divider} />
+                  {section.skills.map((skill, skillIdx) => (
+                    <Text key={skillIdx} style={styles.content}>
+                      {skill.name} ({skill.level})
+                    </Text>
+                  ))}
                 </View>
               );
             }
             return null;
           })}
         </View>
+
         <View style={styles.mainContent}>
-          <View style={styles.section}>
-            <Html stylesheet={stylesheet}>{summaryHtml}</Html>
-          </View>
+          {summaryHtml && (
+            <View style={styles.summary}>
+              <Html stylesheet={stylesheet}>{summaryHtml}</Html>
+            </View>
+          )}
+
           {data.sections.map((section, sectionIdx) => {
-            if (section.type !== "personalDetails") {
+            if (section.type === "educations") {
               return (
                 <View key={sectionIdx} style={styles.section}>
                   <Text style={styles.title}>{section.title}</Text>
                   <View style={styles.divider} />
-                  {section.type === "skills" &&
-                    section.skills.map((skill, skillIdx) => (
-                      <Text key={skillIdx} style={styles.content}>
-                        {skill.name} ({skill.level})
+                  {section.educations.map((edu, eduIdx) => (
+                    <View key={eduIdx} style={styles.subSection}>
+                      <Text style={styles.subSectionTitle}>{edu.school}</Text>
+                      <Text style={styles.subSectionDate}>
+                        {edu.startDate
+                          ? format(edu.startDate, "MMMM yyyy")
+                          : "N/A"}{" "}
+                        -{" "}
+                        {edu.endDate
+                          ? format(edu.endDate, "MMMM yyyy")
+                          : "Present"}
                       </Text>
-                    ))}
-                  {section.type === "educations" &&
-                    section.educations.map((edu, eduIdx) => (
-                      <Html stylesheet={stylesheet} key={eduIdx}>
-                        {edu.description}
-                      </Html>
-                    ))}
-                  {section.type === "employmentHistory" &&
-                    section.employments.map((job, jobIdx) => (
-                      <Html stylesheet={stylesheet} key={jobIdx}>
-                        {job.description}
-                      </Html>
-                    ))}
+                      <Html stylesheet={stylesheet}>{edu.description}</Html>
+                    </View>
+                  ))}
+                </View>
+              );
+            } else if (section.type === "employmentHistory") {
+              return (
+                <View key={sectionIdx} style={styles.section}>
+                  <Text style={styles.title}>{section.title}</Text>
+                  <View style={styles.divider} />
+                  {section.employments.map((job, jobIdx) => (
+                    <View key={jobIdx} style={styles.subSection}>
+                      <Text style={styles.subSectionTitle}>{job.jobTitle}</Text>
+                      <Text style={styles.subSectionDate}>
+                        {job.startDate
+                          ? format(job.startDate, "MMMM yyyy")
+                          : "N/A"}{" "}
+                        -{" "}
+                        {job.endDate
+                          ? format(job.endDate, "MMMM yyyy")
+                          : "Present"}
+                      </Text>
+                      <Html stylesheet={stylesheet}>{job.description}</Html>
+                    </View>
+                  ))}
                 </View>
               );
             }
