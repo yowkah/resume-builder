@@ -156,6 +156,9 @@ export const educationsSchema = z.object({
       startDate: lenientDate.nullable(),
       endDate: lenientDate.nullable(),
       description: z.string(),
+    }).refine((data) => data.startDate && data.endDate && data.endDate > data.startDate, {
+      message: "End date cannot be earlier than start date.",
+      path: ["endDate"]
     })
   ),
 });
@@ -170,6 +173,9 @@ export const employmentHistorySchema = z.object({
       startDate: lenientDate.nullable(),
       endDate: lenientDate.nullable(),
       description: z.string(),
+    }).refine((data) => data.startDate && data.endDate && data.endDate > data.startDate, {
+      message: "End date cannot be earlier than start date.",
+      path: ["endDate"]
     })
   ),
 });
