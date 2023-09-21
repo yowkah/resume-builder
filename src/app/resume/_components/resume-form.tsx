@@ -70,6 +70,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Schema } from "../page";
 
 const SECTIONS = {
   personalDetails: PersonalDetails,
@@ -183,20 +184,6 @@ export const languagesSchema = z.object({
     })
   ),
 });
-
-const schema = z.object({
-  sections: z.array(
-    z.discriminatedUnion("type", [
-      personalDetailsSchema,
-      skillsSchema,
-      educationsSchema,
-      employmentHistorySchema,
-      languagesSchema,
-    ])
-  ),
-});
-
-export type Schema = z.infer<typeof schema>;
 
 /**
  * Components for all possible sections of the resume

@@ -10,8 +10,8 @@ import {
   Font,
 } from "@react-pdf/renderer";
 import { Html } from "react-pdf-html";
-import { Schema } from "./resume-form";
 import { format } from "date-fns";
+import { Schema } from "../page";
 
 Font.register({
   family: "Inter",

@@ -4,6 +4,7 @@ import React from "react";
 import ResumeForm, {
   educationsSchema,
   employmentHistorySchema,
+  languagesSchema,
   personalDetailsSchema,
   skillsSchema,
 } from "./_components/resume-form";
@@ -65,6 +66,7 @@ const schema = z.object({
       skillsSchema,
       educationsSchema,
       employmentHistorySchema,
+      languagesSchema,
     ])
   ),
 });
@@ -90,6 +92,7 @@ export default function Page() {
 
     return result;
   }, []);
+
   const methods = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: createDefaultValues,
