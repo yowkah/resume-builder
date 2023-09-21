@@ -48,9 +48,10 @@ function MonthGrid(props: MonthGridProps) {
       <div className={cn("flex justify-center pt-1 relative items-center")}>
         <Button
           onClick={() => setCurrentYear((prevYear) => prevYear - 1)}
+          size="icon"
           className={cn(
             buttonVariants({ variant: "outline" }),
-            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1"
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 text-inherit"
           )}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -60,7 +61,7 @@ function MonthGrid(props: MonthGridProps) {
           onClick={() => setCurrentYear((prevYear) => prevYear + 1)}
           className={cn(
             buttonVariants({ variant: "outline" }),
-            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1"
+            "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 text-inherit"
           )}
         >
           <ChevronRight className="h-4 w-4" />
