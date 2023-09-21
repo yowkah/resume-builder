@@ -128,7 +128,6 @@ export function Template(props: TemplateProps) {
   const { data } = props;
 
   let summaryHtml = "";
-  let personalDetails = null;
 
   return (
     <Document>

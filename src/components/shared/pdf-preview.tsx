@@ -47,6 +47,16 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
   }, [parentRef]);
 
   React.useEffect(() => {
+    if (!file) {
+      pdf(props.children)
+        .toBlob()
+        .then((blob) => {
+          setFile(blob);
+        });
+
+      return;
+    }
+
     if (timeoutIdRef.current !== null) {
       clearTimeout(timeoutIdRef.current);
     }
@@ -64,7 +74,7 @@ export default function BasePDFPreview(props: PDFPreviewProps) {
         clearTimeout(timeoutIdRef.current);
       }
     };
-  }, [props.children]);
+  }, [props.children, file]);
 
   return (
     <div ref={parentRef} className="w-full h-full">
